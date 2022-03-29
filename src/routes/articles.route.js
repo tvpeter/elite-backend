@@ -38,26 +38,28 @@ articleRoute.route("/").get(async (req, res) => {
 
 articleRoute
   .route("/create-article")
-  .post(imageUpload.single("image"), validate(createArticle), (req, res, next) => {
-   
-    cloudinary.uploader
-      .upload(req.file.path, { folder: "elite/", format: "png" })
-      .then((result) => {
-        req.body.image = result.secure_url;
-        articleSchema.create(req.body, (error, data) => {
-          if (error) {
-            return util.sendError(res, 400, error);
-          } else {
-            return util.sendSuccess(res, 201, data);
-          }
-        });
-      })
-      .catch((error) => {
-        return util.sendError(res, 400, error);
-      });
+  .post(imageUpload.single("image"), validate(createArticle), async (req, res, next) => {
+
+        try {
+
+        const uploadedImage = await cloudinary.uploader.upload(req.file.path, { folder: "elite/", format: "png" });
+           
+        req.body.image = uploadedImage.secure_url;
+
+        const article = await articleSchema.create(req.body);
+
+        return util.sendSuccess(res, 201, article);
+          
+        } catch (error) {
+          
+          return util.sendError(res, 400, error);
+          
+        }
+
   });
 
 articleRoute.route("/get-article/:id").get((req, res) => {
+
   articleSchema.findById(req.params.id, (error, data) => {
     if (error) {
       return util.sendError(res, 400, error);
