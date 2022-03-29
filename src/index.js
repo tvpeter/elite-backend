@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 const dayjs = require('dayjs');
 const createError = require('http-errors');
 
-const dbConfig = require('./config/database.config');
+const dbConfig = require('../config/database.config');
 const articleRoute = require('./routes/articles.route');
 const lnurlRoute = require('./routes/lnurl.route');
 const paymentRoute = require('./routes/payment.route');
@@ -64,7 +64,6 @@ app.use((req, res, next) => {
   next(createError(404));
 });
 
-// error handler
 app.use(function (err, req, res, next) {
   console.error(err.message);
   if (!err.statusCode) err.statusCode = 500;
