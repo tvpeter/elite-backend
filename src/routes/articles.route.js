@@ -5,9 +5,10 @@ const dotenv = require("dotenv");
 const lnurl = require("lnurl-pay");
 
 const util = require("../utils/util");
-
 let articleSchema = require("../model/article.model");
 let paymentSchema = require("../model/payments.model");
+let validate = require('../middlewares/validator');
+let createArticle = require('../validation/articleValidator');
 
 dotenv.config();
 const articleRoute = express.Router();
@@ -37,7 +38,8 @@ articleRoute.route("/").get(async (req, res) => {
 
 articleRoute
   .route("/create-article")
-  .post(imageUpload.single("image"), (req, res, next) => {
+  .post(imageUpload.single("image"), validate(createArticle), (req, res, next) => {
+   
     cloudinary.uploader
       .upload(req.file.path, { folder: "elite/", format: "png" })
       .then((result) => {

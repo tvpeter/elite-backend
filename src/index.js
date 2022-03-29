@@ -10,11 +10,11 @@ const dayjs = require('dayjs');
 const createError = require('http-errors');
 
 const dbConfig = require('../config/database.config');
-const articleRoute = require('../routes/articles.route');
-const lnurlRoute = require('../routes/lnurl.route');
-const paymentRoute = require('../routes/payment.route');
-const userRoute = require('../routes/user.route');
-const dashboardRoute = require('../routes/dashboard.route');
+const articleRoute = require('./routes/articles.route');
+const lnurlRoute = require('./routes/lnurl.route');
+const paymentRoute = require('./routes/payment.route');
+const userRoute = require('./routes/user.route');
+const dashboardRoute = require('./routes/dashboard.route');
 
 //set db connection
 mongoose.Promise = global.Promise;
@@ -31,9 +31,6 @@ mongoose.connect(dbConfig.url, {
 const app = express();
 dotenv.config();
 app.use(helmet());
-// app.use(fileUpload({
-//   limits: { fileSize: 50 * 1024 * 1024 },
-// }));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -64,7 +61,6 @@ app.use((req, res, next) => {
   next(createError(404));
 });
 
-// error handler
 app.use(function (err, req, res, next) {
   console.error(err.message);
   if (!err.statusCode) err.statusCode = 500;
