@@ -27,7 +27,7 @@ articleRoute.route("/").get(async (req, res) => {
 
   try {
 
-    const articles = await articleSchema.find({});
+    const articles = await articleSchema.find({}, {title: 1, image: 1, username: 1});
     return util.sendSuccess(res, 200, articles);
 
   } catch (error) {
