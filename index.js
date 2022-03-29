@@ -9,12 +9,12 @@ const mongoose = require('mongoose');
 const dayjs = require('dayjs');
 const createError = require('http-errors');
 
-const dbConfig = require('../config/database.config');
-const articleRoute = require('../routes/articles.route');
-const lnurlRoute = require('../routes/lnurl.route');
-const paymentRoute = require('../routes/payment.route');
-const userRoute = require('../routes/user.route');
-const dashboardRoute = require('../routes/dashboard.route');
+const dbConfig = require('./config/database.config');
+const articleRoute = require('./routes/articles.route');
+const lnurlRoute = require('./routes/lnurl.route');
+const paymentRoute = require('./routes/payment.route');
+const userRoute = require('./routes/user.route');
+const dashboardRoute = require('./routes/dashboard.route');
 
 //set db connection
 mongoose.Promise = global.Promise;
