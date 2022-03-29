@@ -31,9 +31,6 @@ mongoose.connect(dbConfig.url, {
 const app = express();
 dotenv.config();
 app.use(helmet());
-// app.use(fileUpload({
-//   limits: { fileSize: 50 * 1024 * 1024 },
-// }));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

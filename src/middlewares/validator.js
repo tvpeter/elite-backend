@@ -1,5 +1,8 @@
 const validator = require('express-validator');
+const util = require('../utils/util');
+
 const validationResult = validator.validationResult;
+
 
 const validate = (schema) => {
     return async (req, res, next) => {
@@ -11,7 +14,7 @@ const validate = (schema) => {
         }
 
         const errors = result.array();
-        return res.send(errors);
+        return util.sendError(res, 400, errors);
     }
 }
 
