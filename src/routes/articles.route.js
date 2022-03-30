@@ -27,11 +27,11 @@ articleRoute.route("/").get(async (req, res) => {
 
   try {
 
-    const articles = await articleSchema.find({}, {title: 1, image: 1, username: 1});
+    const articles = await articleSchema.find({}, { title: 1, image: 1, username: 1 });
     return util.sendSuccess(res, 200, articles);
 
   } catch (error) {
-    
+
     return util.sendError(res, 400, error);
   }
 });
@@ -40,67 +40,48 @@ articleRoute
   .route("/create-article")
   .post(imageUpload.single("image"), validate(createArticle), async (req, res, next) => {
 
-        try {
+    try {
 
-        const uploadedImage = await cloudinary.uploader.upload(req.file.path, { folder: "elite/", format: "png" });
-           
-        req.body.image = uploadedImage.secure_url;
+      const uploadedImage = await cloudinary.uploader.upload(req.file.path, { folder: "elite/", format: "png" });
 
-        const article = await articleSchema.create(req.body);
+      req.body.image = uploadedImage.secure_url;
 
-        return util.sendSuccess(res, 201, article);
-          
-        } catch (error) {
-          
-          return util.sendError(res, 400, error);
-          
-        }
+      const article = await articleSchema.create(req.body);
 
-  });
+      return util.sendSuccess(res, 201, article);
 
-articleRoute.route("/get-article/:id").get((req, res) => {
+    } catch (error) {
 
-  articleSchema.findById(req.params.id, (error, data) => {
-    if (error) {
       return util.sendError(res, 400, error);
-    } else {
-      //check if it's owner or payment has been made
-      const address = req.query.address;
-      if (data.author === address) {
-        return util.sendSuccess(res, 200, data);
-      }
-      //check if user has already paid
-      paymentSchema
-        .find({ articleId: data._id, lnAddress: address })
-        .count((error, number) => {
-          if (error) {
-            return util.sendError(res, 400, error);
-          } else {
-            if (number > 0) {
-              return util.sendSuccess(res, 200, data);
-            } else {
-              //return 402 with invoice
-              lnurl
-                .requestInvoice({
-                  lnUrlOrAddress: data.author,
-                  tokens: 10,
-                })
-                .then((result) => {
-                  const articleData = {
-                    articleId: data._id,
-                    author: data.author,
-                    userLnAddress: address
-                  }
-                  return util.sendSuccess(res, 402, result);
-                })
-                .catch((error) => {
-                  return util.sendError(res, 400, error);
-                });
-            }
-          }
-        });
+
     }
+
   });
+
+articleRoute.route("/get-article/:id").get(async (req, res) => {
+
+  try {
+    const article = await articleSchema.findById(req.params.id);
+
+    const address = req.query.address;
+    //check if it's owner or payment has been made
+    if (article.author === address) {
+      return util.sendSuccess(res, 200, article);
+    }
+
+    const paymentCount = await paymentSchema.find({ articleId: article._id, lnAddress: address }).count();
+
+    if (paymentCount > 0) {
+      return util.sendSuccess(res, 200, article);
+    } else {
+      //return 402 with invoice
+      const invoice = await lnurl.requestInvoice({ lnUrlOrAddress: article.author, tokens: 10 });
+
+      return util.sendSuccess(res, 402, invoice);
+    }
+  } catch (error) {
+    return util.sendError(res, 400, error);
+  }
 });
 
 articleRoute.route("/update-article/:id").put((req, res, next) => {
