@@ -18,14 +18,13 @@ const dashboardRoute = require('./routes/dashboard.route');
 
 //set db connection
 mongoose.Promise = global.Promise;
-mongoose.connect(dbConfig.url, {
-  useNewUrlParser: true
-}).then(() => {
-  console.log('Database connected')
-},
-  error => {
-    console.log('Database could not be connected : ' + error)
-  }
+mongoose.connect(dbConfig.url, {useNewUrlParser: true})
+    .then(() => {
+      console.log('Database connected')
+    },
+    error => {
+      console.log('Database could not be connected : ' + error)
+    }
 )
 
 const app = express();

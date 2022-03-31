@@ -17,98 +17,100 @@ const createArticle = articleValidator.createArticle;
 const getArticle = articleValidator.getArticle;
 
 const imageUpload = multer({
-  dest: "images",
+    dest: "images",
 });
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
-  api_key: process.env.CLOUDINARY_API,
-  api_secret: process.env.CLOUDINARY_SECRET,
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API,
+    api_secret: process.env.CLOUDINARY_SECRET,
 });
 
 articleRoute.route("/").get(async (req, res) => {
 
-  try {
-
-    const articles = await articleSchema.find({}, { title: 1, image: 1, username: 1 });
-    return util.sendSuccess(res, 200, articles);
-
-  } catch (error) {
-
-    return util.sendError(res, 400, error);
-  }
-});
-
-articleRoute
-  .route("/create-article")
-  .post(imageUpload.single("image"), validate(createArticle), async (req, res, next) => {
-
     try {
 
-      const uploadedImage = await cloudinary.uploader.upload(req.file.path, { folder: "elite/", format: "png" });
-
-      req.body.image = uploadedImage.secure_url;
-
-      const article = await articleSchema.create(req.body);
-
-      return util.sendSuccess(res, 201, article);
+        const articles = await articleSchema.find({}, {title: 1, image: 1, username: 1});
+        return util.sendSuccess(res, 200, articles);
 
     } catch (error) {
 
-      return util.sendError(res, 400, error);
-
+        return util.sendError(res, 400, error);
     }
+});
 
-  });
+articleRoute
+    .route("/create-article")
+    .post(imageUpload.single("image"), validate(createArticle), async (req, res, next) => {
+
+        try {
+
+            const uploadedImage = await cloudinary.uploader.upload(req.file.path, {folder: "elite/", format: "png"});
+
+            req.body.image = uploadedImage.secure_url;
+
+            const article = await articleSchema.create(req.body);
+
+            return util.sendSuccess(res, 201, article);
+
+        } catch (error) {
+
+            return util.sendError(res, 400, error);
+
+        }
+
+    });
 
 articleRoute.route("/get-article/:id")
-  .get(validate(getArticle),  async (req, res) => {
+    .get(validate(getArticle), async (req, res) => {
 
-  try {
-    const article = await articleSchema.findById(req.params.id);
+        try {
+            const article = await articleSchema.findById(req.params.id);
 
-    const address = req.query.address;
-    //check if it's owner or payment has been made
-    if (article.author === address) {
-      return util.sendSuccess(res, 200, article);
-    }
+            const address = req.query.address;
+            //check if it's owner or payment has been made
+            if (article.author === address) {
+                return util.sendSuccess(res, 200, article);
+            }
 
-    const paymentCount = await paymentSchema.find({ articleId: article._id, lnAddress: address }).count();
+            const paymentCount = await paymentSchema.find({articleId: article._id, lnAddress: address}).count();
 
-    if (paymentCount > 0) {
-      return util.sendSuccess(res, 200, article);
-    } else {
-      //return 402 with invoice
-      const invoice = await generateRequestInvoice(article.author, 10);
+            if (paymentCount > 0) {
+                return util.sendSuccess(res, 200, article);
+            } else {
+                //return 402 with invoice
+                const invoice = await generateRequestInvoice(article.author, 10);
 
-      return util.sendSuccess(res, 402, invoice);
-    }
-  } catch (error) {
-    return util.sendError(res, 400, error);
-  }
-});
+                return util.sendSuccess(res, 402, invoice);
+            }
+        } catch (error) {
+            return util.sendError(res, 400, error);
+        }
+    });
 
 articleRoute.route("/update-article/:id").put(async (req, res, next) => {
 //check that it is the same author
-  try {
-    const updatedArticle = await articleSchema.findByIdAndUpdate(req.params.id, {$set: req.body });
+    try {
+        const updatedArticle = await articleSchema.findByIdAndUpdate(req.params.id, {$set: req.body});
 
-    return util.sendSuccess(res, 200, updatedArticle);
+        return util.sendSuccess(res, 200, updatedArticle);
 
-  } catch (error) {
+    } catch (error) {
 
-    return util.sendError(res, 400, error);
-  }
+        return util.sendError(res, 400, error);
+    }
 });
 
-articleRoute.route("/remove-article/:id").delete((req, res, next) => {
-  articleSchema.findByIdAndRemove(req.params.id, (error, data) => {
-    if (error) {
-      return util.sendError(res, 400, error);
-    } else {
-      return util.sendSuccess(res, 200, data);
+articleRoute.route("/remove-article/:id").delete(async (req, res, next) => {
+
+    try {
+        const article = await articleSchema.findByIdAndRemove(req.params.id);
+
+        return util.sendSuccess(res, 200, article);
+    } catch (error) {
+        return util.sendError(res, 400, error);
     }
-  });
+
 });
 
 module.exports = articleRoute;

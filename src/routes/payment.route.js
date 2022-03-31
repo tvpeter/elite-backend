@@ -7,26 +7,20 @@ let articleSchema = require("../model/article.model");
 
 const paymentRoute = express.Router();
 
-paymentRoute.route("/register").post((req, res) => {
-  
-  paymentSchema.create(req.body, (error, data) => {
-    if (error) {
-      return util.sendError(res, 400, error);
-    } else {
-      articleSchema.findById(req.body.articleId, (error, resp) => {
-        if (error) {
-          return util.sendError(res, 400, error);
-        } else {
-          let articleData = {
-            articleId: req.body.articleId,
-            author: req.body.lnAddress,
-            userLnAddress: req.query.address
-          }
-          return util.sendSuccess(res, 201, resp);
-        }
-      });
-    }
-  });
+paymentRoute.route("/register").post(async (req, res) => {
+
+  try {
+    const payment = await paymentSchema.create(req.body);
+
+    const article = await articleSchema.findById(req.body.articleId);
+
+    return util.sendSuccess(res, 201, article);
+
+  }catch (error) {
+    return util.sendError(res, 400, error);
+
+  }
+
 });
 
 module.exports = paymentRoute;
