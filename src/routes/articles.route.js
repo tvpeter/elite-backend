@@ -8,10 +8,13 @@ const util = require("../utils/util");
 let articleSchema = require("../model/article.model");
 let paymentSchema = require("../model/payments.model");
 let validate = require('../middlewares/validator');
-let createArticle = require('../validation/articleValidator');
+let articleValidator = require('../validation/articleValidator');
+const generateRequestInvoice = require('../utils/generateInvoice');
 
 dotenv.config();
 const articleRoute = express.Router();
+const createArticle = articleValidator.createArticle;
+const getArticle = articleValidator.getArticle;
 
 const imageUpload = multer({
   dest: "images",
@@ -58,7 +61,8 @@ articleRoute
 
   });
 
-articleRoute.route("/get-article/:id").get(async (req, res) => {
+articleRoute.route("/get-article/:id")
+  .get(validate(getArticle),  async (req, res) => {
 
   try {
     const article = await articleSchema.findById(req.params.id);
@@ -75,7 +79,7 @@ articleRoute.route("/get-article/:id").get(async (req, res) => {
       return util.sendSuccess(res, 200, article);
     } else {
       //return 402 with invoice
-      const invoice = await lnurl.requestInvoice({ lnUrlOrAddress: article.author, tokens: 10 });
+      const invoice = await generateRequestInvoice(article.author, 10);
 
       return util.sendSuccess(res, 402, invoice);
     }
@@ -84,20 +88,17 @@ articleRoute.route("/get-article/:id").get(async (req, res) => {
   }
 });
 
-articleRoute.route("/update-article/:id").put((req, res, next) => {
-  articleSchema.findByIdAndUpdate(
-    req.params.id,
-    {
-      $set: req.body,
-    },
-    (error, data) => {
-      if (error) {
-        return util.sendError(res, 400, error);
-      } else {
-        return util.sendSuccess(res, 200, data);
-      }
-    }
-  );
+articleRoute.route("/update-article/:id").put(async (req, res, next) => {
+//check that it is the same author
+  try {
+    const updatedArticle = await articleSchema.findByIdAndUpdate(req.params.id, {$set: req.body });
+
+    return util.sendSuccess(res, 200, updatedArticle);
+
+  } catch (error) {
+
+    return util.sendError(res, 400, error);
+  }
 });
 
 articleRoute.route("/remove-article/:id").delete((req, res, next) => {

@@ -1,20 +1,11 @@
 const lnurl = require('lnurl-pay');
 
 
-function generateRequestInvoice(address){
+function generateRequestInvoice(address, tokens){
 
-lnurl.requestInvoice({
+return lnurl.requestInvoice({
     lnUrlOrAddress: address,
-    tokens: 10,
-})
-.then((result) => {
-    return result;
-})
-.catch((error) => {
-    return {
-        status: false,
-        error: error,
-    }
+    tokens
 });
 
 }

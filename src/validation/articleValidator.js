@@ -2,6 +2,7 @@ const validator = require('express-validator');
 const articleSchema = require('../model/article.model');
 
 const check = validator.check;
+const query = validator.query;
 
 const createArticle = [
     check('title')
@@ -46,4 +47,15 @@ const createArticle = [
 
 ];
 
-module.exports = createArticle;
+const getArticle = [
+    query('address')
+    .exists()
+    .withMessage('the user\'s lightning address is required')
+    .trim()
+    // .custom((value, {query}) => {
+
+    // }),
+
+];
+
+module.exports = {createArticle, getArticle}
