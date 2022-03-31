@@ -4,15 +4,16 @@ const util = require('../utils/util');
 
 const lnurlRoute = express.Router();
 
-lnurlRoute.route('/').post((req, res) => {
+lnurlRoute.route('/').post(async (req, res) => {
 
-    lnurl.requestPayServiceParams({lnUrlOrAddress:req.body.address})
-        .then((result) => {
-            return util.sendSuccess(res, 200, result);
-        })
-        .catch((error) => {
-            return util.sendError(res, 400, 'Invalid address');
-        })
+    try {
+        const result = await lnurl.requestPayServiceParams({ lnUrlOrAddress: req.body.address })
+
+        return util.sendSuccess(res, 200, result);
+    }
+    catch (error) {
+        return util.sendError(res, 400, error);
+    }
 
 });
 
