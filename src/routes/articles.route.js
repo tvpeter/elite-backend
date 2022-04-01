@@ -8,13 +8,11 @@ const util = require("../utils/util");
 let articleSchema = require("../model/article.model");
 let paymentSchema = require("../model/payments.model");
 let validate = require('../middlewares/validator');
-let articleValidator = require('../validation/articleValidator');
+let {createArticle, updateArticle, getArticle} = require('../validation/articleValidator');
 const generateRequestInvoice = require('../utils/generateInvoice');
 
 dotenv.config();
 const articleRoute = express.Router();
-const createArticle = articleValidator.createArticle;
-const getArticle = articleValidator.getArticle;
 
 const imageUpload = multer({
     dest: "images",
@@ -88,7 +86,7 @@ articleRoute.route("/get-article/:id")
         }
     });
 
-articleRoute.route("/update-article/:id").put(async (req, res, next) => {
+articleRoute.route("/update-article/:id").put(validate(updateArticle), async (req, res, next) => {
 //check that it is the same author
     try {
         const updatedArticle = await articleSchema.findByIdAndUpdate(req.params.id, {$set: req.body});
